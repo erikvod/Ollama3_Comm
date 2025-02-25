@@ -1,40 +1,33 @@
-import requests
+import ollama
 import json
 
-OLLAMA_API_URL = "http://localhost:11434/api/generate"  # Default Ollama endpoint
-MODEL_NAME = "mistral"  # Change to the model you want to use
+# Define the personas
+persona_1 = "Michael Jackson"
+persona_2 = "Donald Trump"
 
-def send_message(prompt, context=""):
-    """Send a message to the Ollama AI and receive a response."""
-    payload = {
-        "model": MODEL_NAME,
-        "prompt": prompt,
-        "stream": False,
-        "context": context
-    }
-    
-    response = requests.post(OLLAMA_API_URL, json=payload)
-    
-    if response.status_code == 200:
-        data = response.json()
-        return data.get("response"), data.get("context")
-    else:
-        print(f"Error: {response.status_code} - {response.text}")
-        return None, None
+# Initial system prompt
+system_prompt = f"Michael Jackson and Donald Trump are having a conversation. Michael is friendly and passionate about music, while Trump is bold and opinionated."
 
-def chat():
-    """Allow a human to chat with the AI while maintaining context."""
-    context = ""
-    print("Start chatting with the AI. Type 'exit' to stop.")
+# Function to chat with a model
+def chat_with_model(model_name, prompt):
+    response = ollama.chat(model=model_name, messages=[{"role": "user", "content": prompt}])
+    return response['message']['content']
 
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() == "exit":
-            break
+# Start the conversation
+print("Welcome to AI Chat! Type 'exit' to quit.")
+history = []
 
-        response, context = send_message(user_input, context)
-        if response:
-            print(f"AI: {response}")
+while True:
+    user_input = input("\nYou: ")
+    if user_input.lower() == 'exit':
+        break
 
-if __name__ == "__main__":
-    chat()
+    # Michael Jackson responds
+    mj_response = chat_with_model('llama2', f"{system_prompt}\n{persona_1}: {user_input}")
+    history.append(f"{persona_1}: {mj_response}")
+    print(f"\n{persona_1}: {mj_response}")
+
+    # Donald Trump responds
+    trump_response = chat_with_model('llama2', f"{system_prompt}\n{persona_2}: {mj_response}")
+    history.append(f"{persona_2}: {trump_response}")
+    print(f"\n{persona_2}: {trump_response}")
